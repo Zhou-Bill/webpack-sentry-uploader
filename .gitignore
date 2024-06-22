@@ -1,0 +1,9 @@
+node_modules
+.vscode
+
+
+# 忽略 doc 文件夹
+doc/
+
+# 忽略 doc 文件夹及其所有子文件夹
+doc/**
