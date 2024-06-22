@@ -4,19 +4,26 @@ const axios = require('axios').default;
 const FormData = require('form-data');
 const promiseQueue = require('./task')
 
-const DOMAIN = 'https://sentry.guanmai.cn'
-const TOKEN = '8c47388015df4aa0b35257ba16fcd4a952379795f0f142fdb65c7530743e0e45'
-
-
+/**
+ * @description 创建 Sentry 发布
+ * @class
+ */
 class SentryUploadPlugin {
-  constructor() {
+   /**
+   * @param {Object} options - 用户信息对象
+   * @param {string} options.domain - 域名
+   * @param {number} options.token - Token
+   * @param {string} options.organization - 组织名称
+   * @param {string} options.project - 组织名称
+   * @param {string} options.release - 版本号
+   */
+  constructor(options) {
     this.name = 'SentryUploadPlugin';
-
+    this.options = options
   }
 
   apply(compiler) {
     compiler.hooks.afterEmit.tapAsync(this.name, async (compilation, callback) => {
-      const assets = compilation.assets;
       const outputPath = (compilation.outputOptions.path) ?? path.resolve();
       const buildArtifacts = Object.keys(compilation.assets).map(
         (asset) => path.join(outputPath, asset)
@@ -32,13 +39,17 @@ class SentryUploadPlugin {
     });
   }
 
+  createUrlPrefix() {
+    return `${this.options.domain}/api/0/organizations/${this.options.organization}/releases`
+  }
+
   async createRelease() {
-    const response = await axios.post(`${DOMAIN}/api/0/organizations/guanmai/releases/`,{
-      version: '7.1.0',
-      projects: ['demo-test'],
+    const response = await axios.post(`${this.createUrlPrefix()}/`,{
+      version: this.options.release,
+      projects: [this.options.project],
     }, {
       headers: {
-        'Authorization': `Bearer ${TOKEN}`,
+        'Authorization': `Bearer ${this.options.token}`,
         'Content-Type': 'application/json'
       },
     })
@@ -46,6 +57,7 @@ class SentryUploadPlugin {
   }
 
   uploadFile(filePath) {
+    const that = this;
     promiseQueue.addTask(async () => {
       const fileContent = fs.createReadStream(filePath);
       const fileName = path.basename(filePath);
@@ -53,16 +65,15 @@ class SentryUploadPlugin {
       form.append('name', `~/${fileName}`);
       form.append('file', fileContent);
 
-      const response = await axios.post(`${DOMAIN}/api/0/organizations/guanmai/releases/7.1.0/files/`, 
+      const response = await axios.post(`${that.createUrlPrefix()}/${that.options.release}/files/`, 
         form , 
         {
           headers: {
-            'Authorization': `Bearer ${TOKEN}`,
+            'Authorization': `Bearer ${that.options.token}`,
             'Content-Type': 'multipart/form-data'
           }
         }
       )
-      console.log(response.data)
       return response
     })
   }
