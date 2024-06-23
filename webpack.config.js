@@ -48,7 +48,7 @@ module.exports = {
       token: '8c47388015df4aa0b35257ba16fcd4a952379795f0f142fdb65c7530743e0e45',
       organization: 'guanmai',
       project: 'demo-test',
-      release: '7.1.1',
+      release: '7.1.2',
     }),
   ]
 }

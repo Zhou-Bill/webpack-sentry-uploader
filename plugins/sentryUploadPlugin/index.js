@@ -30,7 +30,7 @@ class SentryUploadPlugin {
       );
       const response = await this.createRelease();
       await this.uploadFiles(buildArtifacts)
-      console.log(response.data)
+      this.deleteSourceMap(buildArtifacts)
       // https://docs.sentry.io/platforms/javascript/guides/electron/sourcemaps/troubleshooting_js/legacy-uploading-methods/
       console.log(buildArtifacts)
       // 上传代码到 Sentry
@@ -85,6 +85,15 @@ class SentryUploadPlugin {
     })
 
     return promiseQueue.start()
+  }
+
+  deleteSourceMap(buildArtifacts) {
+    const sourceMapReg = /\.map$/;
+    buildArtifacts.forEach((file) => {
+      if (sourceMapReg.test(file)) {
+        fs.unlinkSync(file);
+      }
+    })
   }
 }
 
