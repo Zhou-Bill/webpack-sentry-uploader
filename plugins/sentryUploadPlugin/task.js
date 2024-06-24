@@ -3,8 +3,6 @@ class PromiseQueue {
     this.maxConcurrent = maxConcurrent;
     this.queue = [];
     this.running = 0;
-    // this.donePromise = null
-    // this.rejectPromise = null
     this.promise = null
     this.callback = null
   }
